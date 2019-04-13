@@ -1,11 +1,220 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<title>Index</title>
-	</head>
-	<body>
-		body
-	</body>
+<body>
+
+<canvas id="myCanvas" width="600" height="200" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+
+<script>
+var c = document.getElementById("myCanvas");
+if(window.innerWidth > 750)  c.width = 0.8 * window.innerWidth;
+if(window.innerHeight > 250) c.height = 0.8 * window.innerHeight
+var ctx = c.getContext("2d");
+
+var game = {score: 0, lives: 3, state: "play", level: 1};
+
+var gameObjects = [];
+
+
+var playerRadius = 20
+var enemyRadius = 15;
+var benefitRadius = 20;
+gameObjects.push({type: "player", x:20, y:c.height/2, r:playerRadius, color:"green", speed:1});
+
+gameObjects.push({type: "harm", x:c.width, y:75, r:enemyRadius, color:"red", speed:1});
+
+gameObjects.push({type: "benefit", x:c.width / 2, y:benefitRadius, r:20, color:"yellow", speed:1.25});
+
+var player = gameObjects[0];
+
+var backgroundImg = new Image();
+backgroundImg.src = "background.jpg";
+
+var playerImg = new Image();
+playerImg.src = "player.png"
+
+var harmImg = new Image()
+harmImg.src = "harm.png"
+
+var benefitImg = new Image()
+benefitImg.src = "benefit.png"
+
+ctx.font = "30px Comic Sans MS";
+ctx.fillStyle = "red";
+ctx.textAlign = "center";
+
+
+var right = false;
+var left = false;
+var up = false;
+var down = false;
+
+function draw() {
+  // clear canvas
+  ctx.clearRect(0,0,c.width, c.height);
+  ctx.drawImage(backgroundImg, 0, 0);
+  // draw objects
+  
+
+
+  for (idx in gameObjects) {
+    g = gameObjects[idx];
+    ctx.beginPath();
+	if(g.type == "player") {
+		ctx.drawImage(playerImg,g.x - g.r,g.y - g.r,g.r * 2,g.r * 2)
+	}
+	else if(g.type == "harm") {
+		
+		ctx.drawImage(harmImg,g.x - g.r, g.y - g.r, g.r * 2, g.r * 2)
+	}
+	else if (g.type == "benefit") {
+		
+		ctx.drawImage(benefitImg,g.x - g.r, g.y - g.r, g.r * 2, g.r * 2)
+
+	}
+	else {
+		ctx.arc(g.x, g.y, g.r, 0, 2 * Math.PI);
+		ctx.fillStyle = g.color;
+    	ctx.fill();
+	}
+ 
+
+	if(up && player.y > 0)         player.y -= player.speed;
+
+	if(down && player.y < c.height)	        player.y += player.speed;
+
+	if(left && player.x > 0) player.x -= player.speed
+	if(right && player.x < c.width) player.x += player.speed
+
+    if (g.type != "player") {
+
+      g.x -= g.speed * game.level;
+
+      if (colliding(player,g)) {
+        if (g.type == "harm") {
+          game.lives --;
+        } else if (g.type == "benefit"){
+          game.score += 100;
+
+          if (game.score % 200 == 0) {
+            game.level ++;
+            
+            if (game.level % 2 == 0) {
+                gameObjects.push({type: "harm", x:c.width, y:75, r:enemyRadius, color:"red", speed:1});
+            }
+            
+
+
+          }
+
+        }
+        console.log(game);
+        
+        g.state = "collision"
+      }
+
+
+
+
+      if ( (g.x + g.r < 0)  || g.state == "collision") {
+          g.x = c.width + g.r;
+          g.y = Math.random() * (c.height - 0) + 0;
+          g.state = "";
+        } 
+    }
+  }
+
+  // draw text
+  ctx.fillText("Score: " + game.score + " - Lives: " + game.lives + " - Level " + game.level, c.width/2, 30); 
+
+  
+  // next frame
+  if (game.lives > 0) {
+    window.requestAnimationFrame (draw);
+  } else {
+    gameOver();
+  }
+  
+}
+
+
+function gameOver() {
+  ctx.clearRect(0,0,c.width, c.height);
+  ctx.drawImage(backgroundImg, 0, 0);
+  ctx.fillText("Game Over", c.width/2, c.height/2);
+
+}
+
+
+window.requestAnimationFrame (draw);
+
+
+function colliding (circle1, circle2) {
+  var result = false;
+
+  var dx = circle1.x - circle2.x;
+  var dy = circle1.y - circle2.y;
+  var distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance < circle1.r + circle2.r){
+      // collision detected!
+      result = true;
+  }
+  
+
+  return result;
+}
+
+document.onkeydown = checkKeyDown;
+document.onkeyup = checkKeyUp
+
+
+function checkKeyDown(e) {
+
+	if (e.keyCode == '38') {
+        // up arrow
+		up = true
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+		down = true
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+	   left = true
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+	   right = true
+    }
+}
+function checkKeyUp(e) {
+
+    e = e || window.event;
+
+    // console.log(e);
+    if (e.keyCode == '38') {
+        // up arrow
+		up = false
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+		down = false
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+	   left = false
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+	   right = false
+    }
+
+}
+
+
+
+</script> 
+
+</body>
 </html>
